@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Wasl — وصل</title>
+<meta name="description" content="Test your Quran memorization — see a verse, pick what comes next.">
+<meta name="theme-color" content="#051F20">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wasl">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" class="wasl theme-dark">
+
+  <!-- ===================== HOME ===================== -->
+  <section id="view-home" class="view">
+    <div class="home-head">
+      <button type="button" class="brand" id="brand-about-btn" aria-label="About Wasl">
+        <div class="brand-eyebrow">Wasl</div>
+        <div class="brand-mark">وصل</div>
+      </button>
+      <div class="head-right">
+        <div class="streak-pill">
+          <span class="streak-dot"></span>
+          <span id="streak-label">0 day streak</span>
+        </div>
+        <button type="button" class="settings-btn" id="settings-btn" aria-label="Settings">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="today-card">
+      <div class="today-ring-row">
+        <div class="today-copy">
+          <div class="today-eyebrow">Today</div>
+          <div class="today-title" id="today-title">Full Quran<br><span id="today-sub">No sessions yet</span></div>
+        </div>
+        <div class="ring-wrap">
+          <svg width="76" height="76" viewBox="0 0 76 76" class="ring-svg">
+            <circle cx="38" cy="38" r="34" fill="none" stroke="rgba(218,241,222,.16)" stroke-width="5"></circle>
+            <circle id="today-ring" cx="38" cy="38" r="34" fill="none" stroke="#C79A3D" stroke-width="5" stroke-linecap="round" stroke-dasharray="214" stroke-dashoffset="214"></circle>
+          </svg>
+          <div class="ring-label" id="today-pct">0%</div>
+        </div>
+      </div>
+      <button type="button" class="btn-continue" id="btn-continue">Start session</button>
+      <div class="btn-endless-wrap">
+        <button type="button" class="btn-endless-main" id="btn-endless">Endless mode · Full Quran</button>
+        <button type="button" class="btn-endless-info" id="endless-info-btn" aria-label="About endless mode">i</button>
+      </div>
+    </div>
+
+    <div class="section-label">Test me on</div>
+    <div class="presets-slider" id="presets-slider"></div>
+    <div class="presets-dots" id="presets-dots"></div>
+
+    <div class="section-head">
+      <div class="section-label">Or pick Juz</div>
+      <div class="sel-count" id="sel-count">none yet</div>
+    </div>
+    <div class="juz-grid" id="juz-grid"></div>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="view-quiz" class="view" hidden>
+    <div class="quiz-top">
+      <button type="button" class="close-btn" id="quiz-close" aria-label="Close">✕</button>
+      <div class="quiz-scope" id="quiz-scope"></div>
+      <div class="quiz-counter" id="quiz-counter"></div>
+    </div>
+
+    <div class="quiz-subbar">
+      <label class="switch-label" for="opt-translation">
+        <span>Translation</span>
+        <span class="switch">
+          <input type="checkbox" id="opt-translation" checked>
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+        </span>
+      </label>
+    </div>
+
+    <div class="dots" id="quiz-dots"></div>
+
+    <audio id="recitation-audio" preload="none"></audio>
+
+    <div class="quiz-card" id="quiz-card">
+      <div class="loading">Opening to a verse…</div>
+    </div>
+
+    <div class="which-next" id="which-next" hidden>Which verse comes next?</div>
+    <div class="options" id="quiz-options"></div>
+
+    <div class="verdict-block" id="verdict-block" hidden>
+      <div class="verdict-text" id="verdict-text"></div>
+      <button type="button" class="btn-next" id="btn-next"></button>
+    </div>
+  </section>
+
+  <!-- ===================== SUMMARY ===================== -->
+  <section id="view-summary" class="view" hidden>
+    <div class="summary-head">
+      <div class="score-ring-wrap">
+        <svg width="150" height="150" viewBox="0 0 150 150" class="score-ring-svg">
+          <circle cx="75" cy="75" r="66" fill="none" stroke="var(--surface2)" stroke-width="7"></circle>
+          <circle id="score-ring" cx="75" cy="75" r="66" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="415" stroke-dashoffset="415"></circle>
+        </svg>
+        <div class="score-label">
+          <div class="score-pct" id="score-pct">0%</div>
+          <div class="score-caption">recalled</div>
+        </div>
+      </div>
+      <div class="summary-title" id="summary-title"></div>
+      <div class="summary-sub" id="summary-sub"></div>
+    </div>
+
+    <div class="summary-stats" id="summary-stats"></div>
+
+    <div class="section-label">This session</div>
+    <div class="reviewed-list" id="reviewed-list"></div>
+
+    <div class="summary-actions">
+      <button type="button" class="btn-continue flex1" id="btn-again">Practise again</button>
+      <button type="button" class="btn-ghost flex1" id="btn-done">Done</button>
+    </div>
+  </section>
+
+  <!-- ===================== PROGRESS ===================== -->
+  <section id="view-progress" class="view" hidden>
+    <div class="page-title">Progress</div>
+
+    <div class="progress-card">
+      <div class="progress-streak-row">
+        <div class="progress-streak" id="progress-streak">0</div>
+        <div class="progress-streak-sub" id="progress-streak-sub">day streak · best 0</div>
+      </div>
+      <div class="week-bars" id="week-bars"></div>
+    </div>
+
+    <div class="big-stats" id="big-stats"></div>
+
+    <div class="section-label">Strength by Juz</div>
+    <div class="strength-list" id="strength-list"></div>
+  </section>
+
+  <!-- ===================== LIBRARY ===================== -->
+  <section id="view-library" class="view" hidden>
+    <div class="page-title">Library</div>
+    <div class="lib-search">
+      <span class="lib-search-dot"></span>
+      <input type="text" id="lib-search-input" placeholder="Search surah or juz" autocomplete="off">
+    </div>
+    <div class="lib-tabs" id="lib-tabs"></div>
+    <div class="lib-rows" id="lib-rows"></div>
+  </section>
+
+  <!-- ===================== BOTTOM NAV ===================== -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <div class="nav-bar">
+      <button type="button" class="nav-tab" data-tab="practice">Practice</button>
+      <button type="button" class="nav-tab" data-tab="progress">Progress</button>
+      <button type="button" class="nav-tab" data-tab="library">Library</button>
+    </div>
+    <div class="home-indicator"></div>
+  </nav>
+
+  <!-- ===================== LEAVE-SESSION MODAL ===================== -->
+  <div class="modal-overlay" id="leave-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-title">Leave this session?</div>
+      <div class="modal-body">Progress you've already answered is saved, but the rest of this session will be lost.</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-continue flex1" id="modal-cancel">Keep going</button>
+        <button type="button" class="btn-ghost btn-ghost-danger flex1" id="modal-confirm">Leave session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ENDLESS MODE INFO MODAL ===================== -->
+  <div class="modal-overlay" id="endless-info-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-title">Endless mode</div>
+      <div class="modal-body">Answer as many verses in a row as you can. You start with 3 lives — each wrong answer costs one, and the run ends once they're gone. Your best score is saved, so there's always one to beat.</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-continue flex1" id="endless-info-close">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ABOUT MODAL ===================== -->
+  <div class="modal-overlay" id="about-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-title">About Wasl</div>
+      <div class="modal-body">
+        <p>Wasl helps you test your Quran memorization — see a verse, and recall what comes next, or before.</p>
+        <p id="about-credit">Made by [Your name here]</p>
+        <p id="about-version">Version 1.0.0</p>
+        <p class="about-attribution">Quran text (Uthmani script) and the Saheeh International translation are provided by api.alquran.cloud.</p>
+        <p class="about-attribution">Recitations by Mishary Rashid Alafasy and Mahmoud Khalil Al-Husary, served via cdn.islamic.network.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-continue flex1" id="about-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SETTINGS MODAL ===================== -->
+  <div class="modal-overlay" id="settings-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-title">Settings</div>
+
+      <div class="settings-list">
+        <div class="section-head section-head--control">
+          <div class="section-label">Theme</div>
+          <div class="theme-switch" id="theme-switch">
+            <button type="button" class="theme-opt" data-theme="dark">Dark</button>
+            <button type="button" class="theme-opt" data-theme="light">Light</button>
+          </div>
+        </div>
+
+        <div class="section-head section-head--control">
+          <div class="section-label">Direction</div>
+          <div class="theme-switch" id="direction-switch">
+            <button type="button" class="theme-opt" data-direction="next">Next verse</button>
+            <button type="button" class="theme-opt" data-direction="previous">Previous verse</button>
+          </div>
+        </div>
+
+        <div class="section-head section-head--control">
+          <div class="section-label">Difficulty</div>
+          <div class="theme-switch" id="difficulty-switch">
+            <button type="button" class="theme-opt" data-difficulty="easy">Easy</button>
+            <button type="button" class="theme-opt" data-difficulty="medium">Medium</button>
+            <button type="button" class="theme-opt" data-difficulty="hard">Hard</button>
+          </div>
+        </div>
+
+        <div class="section-head section-head--control">
+          <div class="section-label">Reciter <span class="experimental-tag">(experimental)</span></div>
+          <div class="theme-switch" id="reciter-switch">
+            <button type="button" class="theme-opt" data-reciter="ar.alafasy">Alafasy</button>
+            <button type="button" class="theme-opt" data-reciter="ar.husary">Al-Husary</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-continue flex1" id="settings-close">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== RELEASE NOTICE MODAL ===================== -->
+  <div class="modal-overlay" id="notice-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-title" id="notice-title">Release Notes</div>
+      <div class="modal-body" id="notice-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-continue flex1" id="notice-close">Got it</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="script.js"></script>
+<script>
+  // The service worker is only useful for the browser/PWA version, which needs
+  // it for offline app-shell caching. Inside the native Capacitor app, web
+  // assets are already bundled into the APK/IPA at build time, so registering
+  // a service worker here only risks it caching a stale copy of the shell and
+  // serving that instead of whatever was just rebuilt.
+  if('serviceWorker' in navigator && !window.Capacitor){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

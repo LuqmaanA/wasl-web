@@ -1,0 +1,14 @@
+{
+  "name": "Wasl — Continue the Ayah",
+  "short_name": "Wasl",
+  "description": "Test your Quran memorization — see a verse, pick what comes next.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#051F20",
+  "theme_color": "#051F20",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
