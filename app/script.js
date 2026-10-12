@@ -895,7 +895,7 @@ document.getElementById("endless-info-modal").addEventListener("click", (e) => {
 /* About                                                                */
 /* ================================================================== */
 
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.1.0";
 const APP_CREDIT = "Made by Luqmaan Agherdien"; // edit this line to set your credit text
 
 document.getElementById("about-version").textContent = `Version ${APP_VERSION}`;
