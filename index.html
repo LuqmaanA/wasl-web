@@ -5,135 +5,348 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wasl — Quran Memorization Trainer</title>
 <meta name="description" content="Wasl helps you test your Quran memorization — see a verse, recall what comes next or before. Free, no account required.">
+<meta name="theme-color" content="#051F20">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Wasl — Quran Memorization Trainer">
+<meta property="og:description" content="See a verse. Recall what comes next. Free, in your browser, no account required.">
+<meta property="og:url" content="https://luqmaana.github.io/wasl-web/">
+<meta property="og:image" content="https://luqmaana.github.io/wasl-web/app/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="app/icons/icon-192.png">
+<link rel="apple-touch-icon" href="app/icons/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Amiri+Quran&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#051F20; --surface:#0B2B26; --surface2:#163832; --line:rgba(142,182,155,.16);
+    --bg:#051F20; --surface:#0B2B26; --surface2:#163832; --line:rgba(142,182,155,.16); --line-strong:rgba(142,182,155,.28);
     --ink:#DAF1DE; --ink-soft:#8EB69B; --accent:#C79A3D; --accent-dim:rgba(199,154,61,.18);
+    --good:#7FC79A; --good-dim:rgba(127,199,154,.14); --bad:#D9826B; --bad-dim:rgba(217,130,107,.12);
     --btn-bg:#DAF1DE; --btn-fg:#051F20;
+    --shadow: 0 30px 60px -30px rgba(1,14,13,.9), 0 12px 24px -16px rgba(1,14,13,.7);
+    --ease: cubic-bezier(.2,.8,.2,1);
   }
   *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
   body{
-    margin: 0;
-    background: radial-gradient(circle at 15% 0%, #163832, var(--bg) 55%);
+    margin: 0; min-height: 100dvh;
+    background:
+      radial-gradient(60rem 40rem at 85% -10%, rgba(199,154,61,.07), transparent 60%),
+      radial-gradient(50rem 40rem at 0% 0%, #163832, transparent 60%),
+      var(--bg);
     color: var(--ink);
     font-family: 'Sora', system-ui, sans-serif;
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap{ max-width: 720px; margin: 0 auto; padding: 60px 24px 40px; }
+  /* Fixed grain overlay to break up the flat gradient */
+  body::before{
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  a{ color: inherit; }
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 
-  header{ text-align: center; margin-bottom: 46px; }
-  .brand-eyebrow{ font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
-  .brand-mark{ font-family: 'Amiri', serif; font-size: 56px; color: var(--accent); direction: rtl; line-height: 1; margin-bottom: 6px; }
-  .brand-name{ font-size: 15px; color: var(--ink-soft); }
+  .skip{
+    position: absolute; left: 16px; top: -60px; z-index: 10;
+    background: var(--btn-bg); color: var(--btn-fg); padding: 10px 16px; border-radius: 10px;
+    font-weight: 600; font-size: 14px; text-decoration: none; transition: top .2s var(--ease);
+  }
+  .skip:focus{ top: 16px; }
 
-  .hero-title{ font-size: 30px; font-weight: 700; text-align: center; margin: 0 0 14px; line-height: 1.3; }
-  .hero-sub{ font-size: 16px; color: var(--ink-soft); text-align: center; max-width: 480px; margin: 0 auto 36px; }
+  .wrap{ position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: 0 24px; }
 
-  .cta-row{ display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 56px; }
-  .btn-primary{
+  /* ---------- Top bar ---------- */
+  .topbar{ display: flex; align-items: center; justify-content: space-between; padding: 28px 0; }
+  .logo{ display: flex; align-items: baseline; gap: 12px; text-decoration: none; }
+  .logo-ar{ font-family: 'Amiri', serif; font-size: 34px; line-height: 1; color: var(--accent); }
+  .logo-en{ font-size: 12px; font-weight: 500; letter-spacing: .28em; text-transform: uppercase; color: var(--ink-soft); }
+  .topbar-link{
+    font-size: 14px; font-weight: 500; color: var(--ink-soft); text-decoration: none;
+    padding: 10px 4px; transition: color .2s var(--ease);
+  }
+  .topbar-link:hover{ color: var(--ink); }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    display: grid; grid-template-columns: 1fr; gap: 48px;
+    padding: 40px 0 96px; align-items: center;
+  }
+  .eyebrow{
     display: inline-flex; align-items: center; gap: 10px;
-    background: var(--btn-bg); color: var(--btn-fg); font-weight: 600; font-size: 15px;
-    padding: 15px 30px; border-radius: 999px; text-decoration: none;
-    box-shadow: 0 18px 40px -22px rgba(0,0,0,.6);
+    font-size: 13px; font-weight: 500; color: var(--ink-soft); margin-bottom: 22px;
   }
+  .eyebrow::before{ content: ""; width: 22px; height: 1px; background: var(--accent); }
+  h1{
+    font-size: clamp(38px, 6vw, 64px); font-weight: 600; line-height: 1.04; letter-spacing: -.035em;
+    margin: 0 0 22px; text-wrap: balance;
+  }
+  h1 em{ font-style: normal; color: var(--accent); }
+  .lede{ font-size: 17px; color: var(--ink-soft); max-width: 34em; margin: 0 0 36px; text-wrap: pretty; }
+
+  .cta-row{ display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+  .btn-primary{
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--btn-bg); color: var(--btn-fg); font-weight: 600; font-size: 15.5px;
+    padding: 16px 18px 16px 26px; border-radius: 999px; text-decoration: none;
+    box-shadow: 0 18px 40px -20px rgba(218,241,222,.35);
+    transition: transform .25s var(--ease), box-shadow .25s var(--ease), background .25s var(--ease);
+  }
+  .btn-primary .arrow{
+    display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--btn-fg); color: var(--btn-bg); transition: transform .25s var(--ease);
+  }
+  .btn-primary:hover{ background: #fff; box-shadow: 0 22px 48px -18px rgba(218,241,222,.45); transform: translateY(-1px); }
+  .btn-primary:hover .arrow{ transform: translateX(3px); }
+  .btn-primary:active{ transform: translateY(1px) scale(.98); }
+  .no-install{ font-size: 13px; color: var(--ink-soft); }
+
+  /* ---------- Demo card ---------- */
+  .demo{
+    position: relative; background: linear-gradient(180deg, var(--surface2), var(--surface) 40%);
+    border: 1px solid var(--line); border-radius: 28px; padding: 26px;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(218,241,222,.06);
+  }
+  .demo-head{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .demo-tag{ font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+  .demo-ref{ font-size: 12px; font-weight: 500; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .prompt{
+    background: rgba(5,31,32,.55); border: 1px solid var(--line); border-radius: 18px;
+    padding: 22px 20px 18px; margin-bottom: 18px; text-align: center;
+  }
+  .prompt-ar{ font-family: 'Amiri Quran', 'Amiri', serif; font-size: 30px; line-height: 2; direction: rtl; }
+  .prompt-en{ font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
+  .ask{ font-size: 14px; font-weight: 600; margin: 0 0 12px; }
+  .options{ display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .opt{
+    width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 2px;
+    background: transparent; color: var(--ink); text-align: left; font: inherit; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 14px; padding: 10px 16px;
+    transition: border-color .2s var(--ease), background .2s var(--ease), opacity .2s var(--ease), transform .15s var(--ease);
+  }
+  .opt:hover:not(:disabled){ border-color: var(--line-strong); background: rgba(218,241,222,.03); }
+  .opt:active:not(:disabled){ transform: scale(.99); }
+  .opt-ar{ font-family: 'Amiri Quran', 'Amiri', serif; font-size: 21px; line-height: 1.9; direction: rtl; text-align: right; }
+  .opt-en{ font-size: 12px; color: var(--ink-soft); }
+  .opt:disabled{ cursor: default; }
+  .opt.is-correct{ border-color: var(--good); background: var(--good-dim); }
+  .opt.is-wrong{ border-color: var(--bad); background: var(--bad-dim); }
+  .opt.is-dim{ opacity: .45; }
+  .demo-foot{
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    min-height: 40px; margin-top: 14px; font-size: 13px; color: var(--ink-soft);
+  }
+  .demo-foot button{ white-space: nowrap;
+    background: none; border: 0; color: var(--ink); font: inherit; font-weight: 500; cursor: pointer;
+    padding: 8px 2px; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong);
+  }
+  .demo-foot button:hover{ text-decoration-color: var(--accent); }
+
+  /* ---------- Features ---------- */
+  .section{ padding: 88px 0; border-top: 1px solid var(--line); }
+  .section-grid{ display: grid; grid-template-columns: 1fr; gap: 40px; }
+  h2{ font-size: clamp(28px, 3.6vw, 40px); font-weight: 600; line-height: 1.12; letter-spacing: -.03em; margin: 0 0 14px; text-wrap: balance; }
+  .section-sub{ font-size: 15px; color: var(--ink-soft); max-width: 28em; margin: 0; }
+  .features{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; }
+  .feature{ display: grid; grid-template-columns: 44px 1fr; gap: 4px 16px; padding: 24px 0; border-bottom: 1px solid var(--line); }
+  .feature:first-child{ padding-top: 0; }
+  .feature-num{ grid-row: span 2; font-size: 13px; font-weight: 500; color: var(--accent); font-variant-numeric: tabular-nums; padding-top: 3px; }
+  .feature h3{ font-size: 17px; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+  .feature p{ font-size: 14.5px; color: var(--ink-soft); margin: 0; max-width: 36em; }
+  .tag{
+    display: inline-block; vertical-align: 2px; margin-left: 8px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-dim); border-radius: 4px; padding: 2px 6px;
+  }
+
+  /* ---------- Android band ---------- */
+  .android{
+    display: grid; grid-template-columns: 1fr; gap: 24px; align-items: center;
+    background: linear-gradient(120deg, var(--surface2), var(--surface));
+    border: 1px solid var(--line); border-radius: 28px; padding: 36px 32px 40px;
+    box-shadow: inset 0 1px 0 rgba(218,241,222,.05);
+  }
+  .android h2{ font-size: clamp(24px, 3vw, 30px); }
+  .android p{ font-size: 15px; color: var(--ink-soft); margin: 0; max-width: 32em; }
   .btn-secondary{
-    display: inline-flex; align-items: center; gap: 8px;
-    color: var(--ink); font-size: 14px; text-decoration: none;
-    border: 1px solid var(--line); padding: 12px 24px; border-radius: 999px;
-    background: var(--surface);
+    justify-self: start; display: inline-flex; align-items: center; gap: 10px;
+    color: var(--ink); font-size: 14.5px; font-weight: 500; text-decoration: none;
+    border: 1px solid var(--line-strong); padding: 13px 22px; border-radius: 999px;
+    background: rgba(5,31,32,.4);
+    transition: border-color .2s var(--ease), background .2s var(--ease), transform .15s var(--ease);
   }
-  .btn-secondary:hover{ border-color: var(--accent); }
-  .no-install{ font-size: 12.5px; color: var(--ink-soft); opacity: .8; }
+  .btn-secondary:hover{ border-color: var(--accent); background: var(--accent-dim); }
+  .btn-secondary:active{ transform: translateY(1px) scale(.98); }
 
-  .features{
-    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
-    margin-bottom: 56px;
+  /* ---------- Footer ---------- */
+  footer{
+    position: relative; z-index: 1; border-top: 1px solid var(--line);
+    padding: 40px 0 48px; margin-top: 88px; font-size: 13px; color: var(--ink-soft);
   }
-  .feature-card{
-    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
-    padding: 20px 18px;
+  .footer-grid{ display: grid; gap: 14px; }
+  .footer-top{ display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; color: var(--ink); }
+  .footer-top a{ color: var(--ink-soft); text-underline-offset: 3px; transition: color .2s var(--ease); }
+  .footer-top a:hover{ color: var(--ink); }
+  .attribution{ max-width: 60em; margin: 0; }
+  .attribution a{ text-underline-offset: 3px; }
+
+  /* ---------- Entry motion ---------- */
+  @keyframes rise{ from{ opacity: 0; transform: translateY(14px); } to{ opacity: 1; transform: none; } }
+  .rise{ animation: rise .7s var(--ease) both; }
+  .rise-2{ animation-delay: .08s; } .rise-3{ animation-delay: .16s; } .rise-4{ animation-delay: .24s; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *, *::before, *::after{ animation: none !important; transition: none !important; }
   }
-  .feature-title{ font-weight: 600; font-size: 14.5px; margin-bottom: 6px; }
-  .feature-body{ font-size: 13px; color: var(--ink-soft); }
 
-  .divider{ height: 1px; background: var(--line); margin: 0 0 40px; }
-
-  .testing-block{
-    text-align: center; margin-bottom: 50px; padding: 24px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  /* ---------- Breakpoints ---------- */
+  @media (min-width: 900px){
+    .hero{ grid-template-columns: 1.05fr .95fr; gap: 64px; padding: 56px 0 120px; }
+    .demo{ transform: rotate(.6deg); }
+    .section-grid{ grid-template-columns: 5fr 7fr; gap: 64px; }
+    .section-grid > div:first-child{ position: sticky; top: 40px; align-self: start; }
+    .android{ grid-template-columns: 1fr auto; padding: 44px 48px; }
+    .android .btn-secondary{ justify-self: end; }
   }
-  .testing-title{ font-weight: 600; font-size: 15px; margin-bottom: 8px; }
-  .testing-body{ font-size: 13.5px; color: var(--ink-soft); margin-bottom: 18px; max-width: 420px; margin-left: auto; margin-right: auto; }
-
-  footer{ text-align: center; font-size: 12.5px; color: var(--ink-soft); padding-bottom: 40px; }
-  footer a{ color: var(--ink-soft); }
-  footer .credit{ margin-bottom: 8px; }
-
   @media (max-width: 480px){
-    .features{ grid-template-columns: 1fr; }
-    .brand-mark{ font-size: 46px; }
-    .hero-title{ font-size: 24px; }
+    .wrap{ padding: 0 16px; }
+    .demo{ padding: 18px; border-radius: 22px; }
+    .prompt-ar{ font-size: 26px; }
+    .opt-ar{ font-size: 19px; }
+    .android{ padding: 28px 22px 32px; }
+    .logo-en{ display: none; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
+<a class="skip" href="#main">Skip to content</a>
 
-  <header>
-    <div class="brand-eyebrow">WASL</div>
-    <div class="brand-mark">وصل</div>
-    <div class="brand-name">Quran Memorization Trainer</div>
+<div class="wrap">
+  <header class="topbar">
+    <a class="logo" href="./" aria-label="Wasl home">
+      <span class="logo-ar" lang="ar">وصل</span>
+      <span class="logo-en">Wasl</span>
+    </a>
+    <a class="topbar-link" href="app/">Open the trainer</a>
   </header>
 
-  <div class="hero-title">See a verse. Recall what comes next.</div>
-  <div class="hero-sub">Wasl tests your Quran memorization one verse at a time — pick the correct continuation, track your streak, and find exactly where you need more practice.</div>
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <div class="eyebrow rise">Quran memorization trainer</div>
+        <h1 id="hero-title" class="rise rise-2">See a verse. Recall what <em>comes next.</em></h1>
+        <p class="lede rise rise-3">Wasl tests your Quran memorization one verse at a time — pick the correct continuation, track your streak, and find exactly where you need more practice.</p>
+        <div class="cta-row rise rise-4">
+          <a class="btn-primary" href="app/">
+            Try Wasl now
+            <span class="arrow" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </a>
+          <span class="no-install">Works in your browser. No account, nothing to install.</span>
+        </div>
+      </div>
 
-  <div class="cta-row">
-    <a class="btn-primary" href="app/">
-      ▶ Try Wasl now — no download needed
-    </a>
-    <div class="no-install">Works instantly in your browser. No account, nothing installed.</div>
-  </div>
+      <div class="demo rise rise-3" id="demo" aria-labelledby="demo-ask">
+        <div class="demo-head">
+          <span class="demo-tag">Try one</span>
+          <span class="demo-ref">Al-Fātiḥah · 2</span>
+        </div>
+        <div class="prompt">
+          <div class="prompt-ar" lang="ar">ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ</div>
+          <div class="prompt-en">[All] praise is [due] to Allah, Lord of the worlds —</div>
+        </div>
+        <p class="ask" id="demo-ask">Which verse comes next?</p>
+        <ul class="options">
+          <li><button type="button" class="opt"><span class="opt-ar" lang="ar">مَٰلِكِ يَوْمِ ٱلدِّينِ</span><span class="opt-en">Sovereign of the Day of Recompense.</span></button></li>
+          <li><button type="button" class="opt" data-correct><span class="opt-ar" lang="ar">ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</span><span class="opt-en">The Entirely Merciful, the Especially Merciful,</span></button></li>
+          <li><button type="button" class="opt"><span class="opt-ar" lang="ar">ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ</span><span class="opt-en">Guide us to the straight path —</span></button></li>
+          <li><button type="button" class="opt"><span class="opt-ar" lang="ar">إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ</span><span class="opt-en">It is You we worship and You we ask for help.</span></button></li>
+        </ul>
+        <div class="demo-foot">
+          <span id="demo-status" role="status">Tap the verse that follows.</span>
+          <button type="button" id="demo-reset" hidden>Try again</button>
+        </div>
+      </div>
+    </section>
 
-  <div class="divider"></div>
+    <section class="section" aria-labelledby="features-title">
+      <div class="section-grid">
+        <div>
+          <h2 id="features-title">Built for revision, not just reading.</h2>
+          <p class="section-sub">Short sessions that show you where your memory holds and where it slips.</p>
+        </div>
+        <ol class="features">
+          <li class="feature">
+            <span class="feature-num">01</span>
+            <h3>Practice sessions</h3>
+            <p>Quick 5-verse sessions, or Endless mode — keep going until you're out of lives.</p>
+          </li>
+          <li class="feature">
+            <span class="feature-num">02</span>
+            <h3>Any scope</h3>
+            <p>The full Quran, a range of Juz, or your own custom selection.</p>
+          </li>
+          <li class="feature">
+            <span class="feature-num">03</span>
+            <h3>Real progress tracking</h3>
+            <p>Daily streaks and per-Juz strength, so you know what to revisit.</p>
+          </li>
+          <li class="feature">
+            <span class="feature-num">04</span>
+            <h3>Listen along <span class="tag">Experimental</span></h3>
+            <p>Tap to hear any verse recited — Alafasy or Al-Husary.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
 
-  <div class="testing-block">
-    <div class="testing-title">Also building a real Android app</div>
-    <div class="testing-body">It's currently in closed testing on Google Play. If you'd like to help test it before it launches properly, join here:</div>
-    <a class="btn-secondary" href="https://groups.google.com/g/wasl-testers">Join the tester group →</a>
-  </div>
-
-  <div class="features">
-    <div class="feature-card">
-      <div class="feature-title">Practice sessions</div>
-      <div class="feature-body">Quick 5-verse sessions, or Endless mode — keep going until you're out of lives.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-title">Any scope</div>
-      <div class="feature-body">The full Quran, a range of Juz, or your own custom selection.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-title">Real progress tracking</div>
-      <div class="feature-body">Daily streaks and per-Juz strength, so you know what to revisit.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-title">Listen along</div>
-      <div class="feature-body">Tap to hear any verse recited — Alafasy or Al-Husary. (Experimental)</div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
+    <section class="android" aria-labelledby="android-title">
+      <div>
+        <h2 id="android-title">An Android app is on the way.</h2>
+        <p>It's in closed testing on Google Play. If you'd like to help test it before it launches properly, join the tester group.</p>
+      </div>
+      <a class="btn-secondary" href="https://groups.google.com/g/wasl-testers">Join the tester group <span aria-hidden="true">→</span></a>
+    </section>
+  </main>
 
   <footer>
-    <div class="credit">Made by Luqmaan Agherdien</div>
-    <div>Quran text (Uthmani script) and the Saheeh International translation provided by <a href="https://alquran.cloud" target="_blank" rel="noopener">api.alquran.cloud</a>. Recitations served via cdn.islamic.network.</div>
-    <div style="margin-top:10px;"><a href="https://luqmaana.github.io/wasl-privacy/">Privacy Policy</a></div>
+    <div class="footer-grid">
+      <div class="footer-top">
+        <span>Made by Luqmaan Agherdien</span>
+        <a href="https://luqmaana.github.io/wasl-privacy/">Privacy Policy</a>
+      </div>
+      <p class="attribution">Quran text (Uthmani script) and the Saheeh International translation provided by <a href="https://alquran.cloud" target="_blank" rel="noopener">api.alquran.cloud</a>. Recitations served via cdn.islamic.network.</p>
+    </div>
   </footer>
-
 </div>
+
+<script>
+  (function(){
+    var demo = document.getElementById('demo');
+    var opts = demo.querySelectorAll('.opt');
+    var status = document.getElementById('demo-status');
+    var reset = document.getElementById('demo-reset');
+    opts.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var right = btn.hasAttribute('data-correct');
+        opts.forEach(function(o){
+          o.disabled = true;
+          if (o.hasAttribute('data-correct')) o.classList.add('is-correct');
+          else if (o === btn) o.classList.add('is-wrong');
+          else o.classList.add('is-dim');
+        });
+        status.textContent = right ? 'Correct — Al-Fātiḥah\u00A03.' : 'Not quite. The next verse is Al-Fātiḥah\u00A03.';
+        reset.hidden = false;
+      });
+    });
+    reset.addEventListener('click', function(){
+      opts.forEach(function(o){ o.disabled = false; o.classList.remove('is-correct', 'is-wrong', 'is-dim'); });
+      status.textContent = 'Tap the verse that follows.';
+      reset.hidden = true;
+      opts[0].focus();
+    });
+  })();
+</script>
 </body>
 </html>
