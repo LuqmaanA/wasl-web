@@ -1,4 +1,4 @@
-const CACHE_NAME = "wasl-shell-v29";
+const CACHE_NAME = "wasl-shell-v32";
 const SHELL_ASSETS = [
   "./index.html",
   "./style.css",

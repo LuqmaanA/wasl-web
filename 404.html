@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found — Wasl</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#051F20">
+<!-- Absolute paths: GitHub Pages serves this file at whatever URL was missed -->
+<link rel="icon" href="/wasl-web/app/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#051F20; --line:rgba(142,182,155,.16); --line-strong:rgba(142,182,155,.28);
+    --ink:#DAF1DE; --ink-soft:#8EB69B; --accent:#C79A3D; --accent-dim:rgba(199,154,61,.18);
+    --btn-bg:#DAF1DE; --btn-fg:#051F20; --ease: cubic-bezier(.2,.8,.2,1);
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 32px 24px 48px;
+    background:
+      radial-gradient(50rem 36rem at 85% -10%, rgba(199,154,61,.07), transparent 60%),
+      radial-gradient(44rem 36rem at 0% 0%, #163832, transparent 60%),
+      var(--bg);
+    color: var(--ink); font-family: 'Sora', system-ui, sans-serif; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  main{ max-width: 30rem; }
+  .mark{ font-family: 'Amiri Quran', serif; font-size: 44px; line-height: 1.6; color: var(--accent); margin: 0 0 20px; }
+  .code{ font-size: 13px; font-weight: 500; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin: 0 0 14px; }
+  h1{ font-size: clamp(30px, 6vw, 40px); font-weight: 600; line-height: 1.1; letter-spacing: -.03em; margin: 0 0 14px; text-wrap: balance; }
+  p.body{ color: var(--ink-soft); margin: 0 0 32px; text-wrap: pretty; }
+  .actions{ display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+  .btn{
+    display: inline-flex; align-items: center; background: var(--btn-bg); color: var(--btn-fg);
+    font-weight: 600; font-size: 15px; padding: 14px 24px; border-radius: 999px; text-decoration: none;
+    transition: transform .25s var(--ease), background .25s var(--ease);
+  }
+  .btn:hover{ background: #fff; transform: translateY(-1px); }
+  .btn:active{ transform: translateY(1px) scale(.98); }
+  .link{ color: var(--ink); font-weight: 500; font-size: 15px; text-underline-offset: 4px; text-decoration-color: var(--line-strong); padding: 8px 0; }
+  .link:hover{ text-decoration-color: var(--accent); }
+  @media (prefers-reduced-motion: reduce){ *{ transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="mark" lang="ar" aria-hidden="true">وصل</p>
+  <p class="code">404</p>
+  <h1>This page isn't here.</h1>
+  <p class="body">The link may be old or mistyped. The trainer and the home page are both still where they were.</p>
+  <div class="actions">
+    <a class="btn" href="/wasl-web/app/">Open the trainer</a>
+    <a class="link" href="/wasl-web/">Back to home</a>
+  </div>
+</main>
+</body>
+</html>
