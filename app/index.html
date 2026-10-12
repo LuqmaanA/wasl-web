@@ -20,6 +20,7 @@
 <body>
 <div id="app" class="wasl theme-dark">
 
+  <main id="main">
   <!-- ===================== HOME ===================== -->
   <section id="view-home" class="view">
     <div class="home-head">
@@ -57,7 +58,7 @@
       </div>
       <button type="button" class="btn-continue" id="btn-continue">Start session</button>
       <div class="btn-endless-wrap">
-        <button type="button" class="btn-endless-main" id="btn-endless">Endless mode · Full Quran</button>
+        <button type="button" class="btn-endless-main" id="btn-endless"><span class="btn-endless-label">Endless mode · Full Quran</span></button>
         <button type="button" class="btn-endless-info" id="endless-info-btn" aria-label="About endless mode">i</button>
       </div>
     </div>
@@ -138,7 +139,7 @@
 
   <!-- ===================== PROGRESS ===================== -->
   <section id="view-progress" class="view" hidden>
-    <div class="page-title">Progress</div>
+    <h1 class="page-title">Progress</h1>
 
     <div class="progress-card">
       <div class="progress-streak-row">
@@ -156,14 +157,15 @@
 
   <!-- ===================== LIBRARY ===================== -->
   <section id="view-library" class="view" hidden>
-    <div class="page-title">Library</div>
+    <h1 class="page-title">Library</h1>
     <div class="lib-search">
-      <span class="lib-search-dot"></span>
-      <input type="text" id="lib-search-input" placeholder="Search surah or juz" autocomplete="off">
+      <svg class="lib-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      <input type="search" id="lib-search-input" placeholder="Search surah or juz" aria-label="Search surah or juz" autocomplete="off" enterkeyhint="search">
     </div>
     <div class="lib-tabs" id="lib-tabs"></div>
     <div class="lib-rows" id="lib-rows"></div>
   </section>
+  </main>
 
   <!-- ===================== BOTTOM NAV ===================== -->
   <nav class="bottom-nav" id="bottom-nav" aria-label="Main">
@@ -177,11 +179,11 @@
 
   <!-- ===================== LEAVE-SESSION MODAL ===================== -->
   <div class="modal-overlay" id="leave-modal" hidden>
-    <div class="modal-card">
-      <div class="modal-title">Leave this session?</div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="leave-modal-title">
+      <h2 class="modal-title" id="leave-modal-title">Leave this session?</h2>
       <div class="modal-body">Progress you've already answered is saved, but the rest of this session will be lost.</div>
       <div class="modal-actions">
-        <button type="button" class="btn-continue flex1" id="modal-cancel">Keep going</button>
+        <button type="button" class="btn-continue flex1" id="modal-cancel" data-dismiss>Keep going</button>
         <button type="button" class="btn-ghost btn-ghost-danger flex1" id="modal-confirm">Leave session</button>
       </div>
     </div>
@@ -189,19 +191,19 @@
 
   <!-- ===================== ENDLESS MODE INFO MODAL ===================== -->
   <div class="modal-overlay" id="endless-info-modal" hidden>
-    <div class="modal-card">
-      <div class="modal-title">Endless mode</div>
-      <div class="modal-body">Answer as many verses in a row as you can. You start with 3 lives — each wrong answer costs one, and the run ends once they're gone. Your best score is saved, so there's always one to beat.</div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="endless-info-modal-title">
+      <h2 class="modal-title" id="endless-info-modal-title">Endless mode</h2>
+      <div class="modal-body">Answer as many verses in a row as you can from whatever you've picked — the full Quran, a preset, or your own Juz. You start with 3 lives; each wrong answer costs one, and the run ends once they're gone. Your best is saved for each selection, so there's always one to beat. Tap <span aria-hidden="true">∞</span><span class="visually-hidden">the infinity button</span> on any preset to run it endless.</div>
       <div class="modal-actions">
-        <button type="button" class="btn-continue flex1" id="endless-info-close">Got it</button>
+        <button type="button" class="btn-continue flex1" id="endless-info-close" data-dismiss>Got it</button>
       </div>
     </div>
   </div>
 
   <!-- ===================== ABOUT MODAL ===================== -->
   <div class="modal-overlay" id="about-modal" hidden>
-    <div class="modal-card">
-      <div class="modal-title">About Wasl</div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+      <h2 class="modal-title" id="about-modal-title">About Wasl</h2>
       <div class="modal-body">
         <p>Wasl helps you test your Quran memorization — see a verse, and recall what comes next, or before.</p>
         <p id="about-credit">Made by [Your name here]</p>
@@ -210,15 +212,15 @@
         <p class="about-attribution">Recitations by Mishary Rashid Alafasy and Mahmoud Khalil Al-Husary, served via cdn.islamic.network.</p>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn-continue flex1" id="about-close">Close</button>
+        <button type="button" class="btn-continue flex1" id="about-close" data-dismiss>Close</button>
       </div>
     </div>
   </div>
 
   <!-- ===================== SETTINGS MODAL ===================== -->
   <div class="modal-overlay" id="settings-modal" hidden>
-    <div class="modal-card">
-      <div class="modal-title">Settings</div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+      <h2 class="modal-title" id="settings-modal-title">Settings</h2>
 
       <div class="settings-list">
         <div class="section-head section-head--control">
@@ -256,18 +258,18 @@
       </div>
 
       <div class="modal-actions">
-        <button type="button" class="btn-continue flex1" id="settings-close">Done</button>
+        <button type="button" class="btn-continue flex1" id="settings-close" data-dismiss>Done</button>
       </div>
     </div>
   </div>
 
   <!-- ===================== RELEASE NOTICE MODAL ===================== -->
   <div class="modal-overlay" id="notice-modal" hidden>
-    <div class="modal-card">
-      <div class="modal-title" id="notice-title">Release notes</div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="notice-modal-title">
+      <h2 class="modal-title" id="notice-modal-title">Release notes</h2>
       <div class="modal-body" id="notice-body"></div>
       <div class="modal-actions">
-        <button type="button" class="btn-continue flex1" id="notice-close">Got it</button>
+        <button type="button" class="btn-continue flex1" id="notice-close" data-dismiss>Got it</button>
       </div>
     </div>
   </div>

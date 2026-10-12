@@ -31,6 +31,19 @@ const PRESET_DEFS_PAGE2 = [
 /* Small helpers                                                       */
 /* ================================================================== */
 
+// Placeholder shaped like the verse card, shown while a question loads
+function quizSkeleton() {
+  const wrap = el("div", "skeleton");
+  wrap.setAttribute("role", "status");
+  wrap.appendChild(el("span", "visually-hidden", "Opening to a verse…"));
+  ["sk-ref", "sk-line", "sk-line sk-line--short", "sk-divider", "sk-en", "sk-en sk-en--short"].forEach(cls => {
+    const bar = el("div", "sk " + cls);
+    bar.setAttribute("aria-hidden", "true");
+    wrap.appendChild(bar);
+  });
+  return wrap;
+}
+
 function el(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -66,6 +79,11 @@ function toArabicIndic(num) {
   return String(num).split("").map(ch => (ch >= "0" && ch <= "9" ? ARABIC_INDIC_DIGITS[+ch] : ch)).join("");
 }
 
+// Stable key for a juz selection, e.g. [3, 1, 2] → "1,2,3"
+function scopeKey(juzList) {
+  return [...juzList].sort((a, b) => a - b).join(",");
+}
+
 function formatJuzListLabel(juzList) {
   if (!juzList.length) return "none yet";
   if (juzList.length === TOTAL_JUZ) return "Full Quran";
@@ -98,7 +116,8 @@ function defaultProgress() {
     lastScope: null,
     theme: "dark",
     showTranslation: true,
-    bestEndlessScore: 0,
+    bestEndlessScore: 0, // legacy, Full Quran only — migrated into bestEndlessByScope
+    bestEndlessByScope: {},
     direction: "next",
     difficulty: "easy",
     reciter: "ar.alafasy",
@@ -111,7 +130,12 @@ function loadProgress() {
     const raw = localStorage.getItem(PROGRESS_KEY);
     if (!raw) return defaultProgress();
     const parsed = JSON.parse(raw);
-    return Object.assign(defaultProgress(), parsed);
+    const merged = Object.assign(defaultProgress(), parsed);
+    // Endless used to be Full Quran only, so an old best belongs to that scope
+    if (!parsed.bestEndlessByScope && merged.bestEndlessScore > 0) {
+      merged.bestEndlessByScope = { [scopeKey(ALL_JUZ)]: merged.bestEndlessScore };
+    }
+    return merged;
   } catch (e) {
     return defaultProgress();
   }
@@ -614,6 +638,12 @@ function renderHome() {
     ? `Start with ${state.selectedJuz.size} juz`
     : (progress.totalAttempts ? "Continue session" : "Start session");
 
+  const endlessBtn = document.getElementById("btn-endless");
+  const endlessScope = homeScope();
+  endlessBtn.replaceChildren(el("span", "btn-endless-label", `Endless mode · ${endlessScope.label}`));
+  const best = progress.bestEndlessByScope[scopeKey(scope)] || 0;
+  endlessBtn.setAttribute("aria-label", `Endless mode on ${endlessScope.label}${best ? `, best ${best}` : ""}`);
+
   // Presets — page 1 (existing four) + page 2 (half-Quran splits), swipeable
   const weak = { key: "weak", title: "Weak spots", sub: "Lowest 6 juz", juz: weakSpotsJuz() };
   const pages = [[...PRESET_DEFS, weak], PRESET_DEFS_PAGE2];
@@ -630,11 +660,20 @@ function renderHome() {
     const page = el("div", "presets-page");
     const grid = el("div", "presets-grid");
     pagePresets.forEach((p) => {
-      const card = el("button", "preset-card" + (p.key === activeKey ? " featured" : ""));
-      card.type = "button";
-      card.appendChild(el("div", "preset-title", p.title));
-      card.appendChild(el("div", "preset-sub", p.sub));
-      card.addEventListener("click", () => startSession(p.juz, p.key === "weak" ? "Weak spots" : formatJuzListLabel(p.juz), p.key));
+      const label = p.key === "weak" ? "Weak spots" : formatJuzListLabel(p.juz);
+      const card = el("div", "preset-card" + (p.key === activeKey ? " featured" : ""));
+      const main = el("button", "preset-main");
+      main.type = "button";
+      main.appendChild(el("div", "preset-title", p.title));
+      main.appendChild(el("div", "preset-sub", p.sub));
+      main.addEventListener("click", () => startSession(p.juz, label, p.key));
+      const endless = el("button", "preset-endless");
+      endless.type = "button";
+      endless.innerHTML = INFINITY_ICON;
+      endless.setAttribute("aria-label", `Endless mode on ${p.title}`);
+      endless.title = "Endless mode";
+      endless.addEventListener("click", () => startEndlessSession(p.juz, label, p.key));
+      card.append(main, endless);
       grid.appendChild(card);
     });
     page.appendChild(grid);
@@ -674,10 +713,19 @@ function renderHome() {
   document.getElementById("sel-count").textContent = state.selectedJuz.size ? `${state.selectedJuz.size} selected` : "none yet";
 }
 
-document.getElementById("btn-continue").addEventListener("click", () => {
-  const scope = currentScope();
+const INFINITY_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.2 7.8c-2.3 0-3.9 1.9-6.2 4.2s-3.9 4.2-6.2 4.2a4.2 4.2 0 0 1 0-8.4c2.3 0 3.9 1.9 6.2 4.2s3.9 4.2 6.2 4.2a4.2 4.2 0 0 0 0-8.4z"/></svg>';
+
+// The scope the home card is showing — selected chips, else the last scope used
+function homeScope() {
+  const juz = currentScope();
   const presetKey = state.selectedJuz.size ? null : ((progress.lastScope && progress.lastScope.presetKey) || null);
-  startSession(scope, formatJuzListLabel(scope), presetKey);
+  const label = presetKey === "weak" ? "Weak spots" : formatJuzListLabel(juz);
+  return { juz, label, presetKey };
+}
+
+document.getElementById("btn-continue").addEventListener("click", () => {
+  const { juz, label, presetKey } = homeScope();
+  startSession(juz, label, presetKey);
 });
 
 let presetsScrollTimeout;
@@ -799,8 +847,9 @@ function startSession(juzList, label, presetKey = null) {
   loadQuizQuestion();
 }
 
-function startEndlessSession() {
-  progress.lastScope = { juz: ALL_JUZ.slice(), label: "Full Quran" };
+function startEndlessSession(juzList, label, presetKey = null) {
+  state.selectedJuz.clear();
+  progress.lastScope = { juz: juzList, label, presetKey };
   touchStreak();
   saveProgress();
 
@@ -808,8 +857,10 @@ function startEndlessSession() {
     mode: "endless",
     direction: state.direction,
     difficulty: state.difficulty,
-    scopeJuz: ALL_JUZ.slice(),
-    scopeLabel: "Endless · Full Quran",
+    scopeJuz: juzList,
+    scopeName: label,
+    scopeLabel: `Endless · ${label}`,
+    presetKey,
     qIndex: 0,
     total: null,
     lives: ENDLESS_LIVES,
@@ -825,7 +876,10 @@ function startEndlessSession() {
   loadQuizQuestion();
 }
 
-document.getElementById("btn-endless").addEventListener("click", startEndlessSession);
+document.getElementById("btn-endless").addEventListener("click", () => {
+  const { juz, label, presetKey } = homeScope();
+  startEndlessSession(juz, label, presetKey);
+});
 
 document.getElementById("endless-info-btn").addEventListener("click", () => {
   document.getElementById("endless-info-modal").hidden = false;
@@ -930,9 +984,12 @@ async function loadQuizQuestion() {
     const q = await buildQuestion(s.scopeJuz, s.direction, s.difficulty);
     s.questions[s.qIndex] = q;
     s.loading = false;
+    s.transitioning = false;
+    s.justArrived = true;
   } catch (err) {
     console.error("Wasl: failed to load a new verse —", err);
     s.loading = false;
+    s.transitioning = false;
     s.error = (err && err.message) ? err.message : String(err);
   }
   renderQuiz();
@@ -957,7 +1014,8 @@ function renderQuiz() {
   } else {
     dotsEl.classList.remove("lives-row");
     for (let i = 0; i < s.total; i++) {
-      const cls = i < s.qIndex ? "dot done" : (i === s.qIndex ? (s.picked !== null ? "dot done" : "dot current") : "dot");
+      let cls = i < s.qIndex ? "dot done" : (i === s.qIndex ? (s.picked !== null ? "dot done" : "dot current") : "dot");
+      if (i === s.qIndex && s.loading) cls += " dot-enter";
       dotsEl.appendChild(el("div", cls));
     }
   }
@@ -969,8 +1027,17 @@ function renderQuiz() {
   card.innerHTML = "";
   optionsEl.innerHTML = "";
 
+  // The card frame slides in once, as the next question starts loading; the
+  // verse and options then reveal on the render that brings them in — never
+  // on the re-render after an answer is picked.
+  const arriving = !!s.justArrived;
+  s.justArrived = false;
+  if (s.loading && s.transitioning) card.classList.add("is-entering");
+  card.classList.toggle("is-revealing", arriving);
+  whichNext.classList.toggle("is-entering", arriving);
+
   if (s.loading) {
-    card.appendChild(el("div", "loading", "Opening to a verse…"));
+    card.appendChild(quizSkeleton());
     whichNext.hidden = true;
     verdictBlock.hidden = true;
     return;
@@ -1030,6 +1097,10 @@ function renderQuiz() {
     optEl.appendChild(el("div", "opt-ar", opt.arabic));
     optEl.appendChild(el("div", "opt-en", opt.english));
     if (!answered) optEl.addEventListener("click", () => handleChoice(i));
+    if (arriving) {
+      optEl.classList.add("is-entering");
+      optEl.style.setProperty("--i", i);
+    }
     optionsEl.appendChild(optEl);
   });
 
@@ -1044,9 +1115,11 @@ function renderQuiz() {
       : (s.mode === "endless" && isLast ? "Out of lives — here's how you did" : "Not this one — the right verse is above");
     verdictText.className = "verdict-text " + (gotIt ? "pos" : "neg");
 
-    document.getElementById("btn-next").textContent = isLast
+    const btnNext = document.getElementById("btn-next");
+    btnNext.textContent = isLast
       ? (s.mode === "endless" ? "See results" : "Finish session")
       : "Next verse";
+    if (!isLast) btnNext.insertAdjacentHTML("beforeend", NEXT_ARROW);
     verdictBlock.hidden = false;
   } else {
     verdictBlock.hidden = true;
@@ -1072,15 +1145,44 @@ function handleChoice(i) {
   document.getElementById("btn-next").focus({ preventScroll: true });
 }
 
+const NEXT_ARROW = '<svg class="btn-next-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const QUIZ_LEAVE_MS = 260;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
 document.getElementById("btn-next").addEventListener("click", () => {
   const s = state.session;
+  if (s.leaving) return;
   const isLast = s.mode === "endless" ? s.lives <= 0 : s.qIndex >= s.total - 1;
   if (isLast) {
     finishSession();
-  } else {
-    s.qIndex++;
-    loadQuizQuestion();
+    return;
   }
+
+  // Play the current verse out, then fetch the next one in behind it
+  const view = document.getElementById("view-quiz");
+  const wait = reducedMotion.matches ? 0 : QUIZ_LEAVE_MS;
+  s.leaving = true;
+  stopRecitation();
+  view.classList.add("is-leaving");
+  if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: reducedMotion.matches ? "auto" : "smooth" });
+
+  setTimeout(() => {
+    view.classList.remove("is-leaving");
+    document.getElementById("quiz-card").classList.remove("is-entering", "is-revealing");
+    s.leaving = false;
+    if (state.session !== s) return; // session was closed mid-transition
+    s.transitioning = true;
+    s.qIndex++;
+    loadQuizQuestion().then(() => {
+      // The Next button is gone now; keep keyboard focus inside the question
+      if (state.session !== s) return;
+      const active = document.activeElement;
+      if (!active || active === document.body || active.closest("[hidden]")) {
+        const first = document.querySelector("#quiz-options .option");
+        if (first) first.focus({ preventScroll: true });
+      }
+    });
+  }, wait);
 });
 
 function finishSession() {
@@ -1102,8 +1204,10 @@ function renderSummary() {
   statsEl.innerHTML = "";
 
   if (s.mode === "endless") {
-    const isNewBest = s.correctCount > progress.bestEndlessScore;
-    if (isNewBest) progress.bestEndlessScore = s.correctCount;
+    const key = scopeKey(s.scopeJuz);
+    const prevBest = progress.bestEndlessByScope[key] || 0;
+    const isNewBest = s.correctCount > prevBest;
+    if (isNewBest) progress.bestEndlessByScope[key] = s.correctCount;
     saveProgress();
 
     ring.style.strokeDasharray = String(circumference);
@@ -1111,13 +1215,13 @@ function renderSummary() {
     document.getElementById("score-pct").textContent = String(s.correctCount);
     if (captionEl) captionEl.textContent = "verses recalled";
 
-    document.getElementById("summary-title").textContent = isNewBest ? "New best!" : "Nice run";
+    document.getElementById("summary-title").textContent = isNewBest ? "New best" : "Nice run";
     document.getElementById("summary-sub").textContent =
-      `You correctly recalled ${s.correctCount} verse${s.correctCount === 1 ? "" : "s"} before running out of lives.`;
+      `You recalled ${s.correctCount} verse${s.correctCount === 1 ? "" : "s"} from ${s.scopeName} before running out of lives.`;
 
     [
       { v: String(s.correctCount), k: "Correct" },
-      { v: String(progress.bestEndlessScore), k: "Best ever" },
+      { v: String(Math.max(prevBest, s.correctCount)), k: "Best here" },
       { v: `${progress.streak}d`, k: "Streak" }
     ].forEach(stat => {
       const tile = el("div", "stat-tile");
@@ -1165,7 +1269,7 @@ function renderSummary() {
 
 document.getElementById("btn-again").addEventListener("click", () => {
   const s = state.session;
-  if (s.mode === "endless") startEndlessSession();
+  if (s.mode === "endless") startEndlessSession(s.scopeJuz, s.scopeName, s.presetKey);
   else startSession(s.scopeJuz, s.scopeLabel, s.presetKey);
 });
 
@@ -1284,11 +1388,11 @@ async function renderLibrary() {
   if (state.libTab === "Juz") {
     const search = state.librarySearch.trim().toLowerCase();
     rowsEl.innerHTML = "";
-    ALL_JUZ
-      .filter(n => !search || String(n).includes(search) || `juz ${n}`.includes(search))
-      .forEach(n => {
-        rowsEl.appendChild(libRow(String(n), `Juz ${n}`, toArabicIndic(n), juzStrengthPct(n)));
-      });
+    const matches = ALL_JUZ.filter(n => !search || String(n).includes(search) || `juz ${n}`.includes(search));
+    matches.forEach(n => {
+      rowsEl.appendChild(libRow(String(n), `Juz ${n}`, toArabicIndic(n), juzStrengthPct(n)));
+    });
+    if (!matches.length) rowsEl.appendChild(libEmpty(state.librarySearch.trim()));
     return;
   }
 
@@ -1321,16 +1425,71 @@ async function renderLibrary() {
   const searchRaw = state.librarySearch.trim();
   const search = searchRaw.toLowerCase();
   rowsEl.innerHTML = "";
-  state.surahMeta
-    .filter(s => !search || s.name.toLowerCase().includes(search) || String(s.number).includes(search) || s.arabicName.includes(searchRaw))
-    .forEach(s => {
-      rowsEl.appendChild(libRow(String(s.number), s.name, s.arabicName, null));
-    });
+  const matches = state.surahMeta
+    .filter(s => !search || s.name.toLowerCase().includes(search) || String(s.number).includes(search) || s.arabicName.includes(searchRaw));
+  matches.forEach(s => {
+    rowsEl.appendChild(libRow(String(s.number), s.name, s.arabicName, null));
+  });
+  if (!matches.length) rowsEl.appendChild(libEmpty(searchRaw));
+}
+
+function libEmpty(query) {
+  const box = el("div", "lib-empty");
+  box.appendChild(el("div", "lib-empty-title", `Nothing matches “${query}”`));
+  box.appendChild(el("div", "lib-empty-sub", state.libTab === "Juz"
+    ? "Juz run from 1 to 30 — search by number."
+    : "Try a surah name like Al-Kahf, or a number."));
+  return box;
 }
 
 document.getElementById("lib-search-input").addEventListener("input", (e) => {
   state.librarySearch = e.target.value;
   renderLibrary();
+});
+
+/* ================================================================== */
+/* Dialogs — focus in on open, back to the opener on close, Escape and  */
+/* Tab handled for whichever overlay is showing.                        */
+/* ================================================================== */
+
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function focusDialog(overlay) {
+  const first = overlay.querySelector(".theme-opt.active, [data-dismiss]") || overlay.querySelector(FOCUSABLE);
+  if (first) first.focus({ preventScroll: true });
+}
+
+document.querySelectorAll(".modal-overlay").forEach(overlay => {
+  let opener = null;
+  if (!overlay.hidden) focusDialog(overlay); // e.g. the release notice, opened before this ran
+  new MutationObserver(() => {
+    if (!overlay.hidden) {
+      opener = document.activeElement;
+      focusDialog(overlay);
+    } else if (opener && document.contains(opener) && !opener.closest("[hidden]")) {
+      opener.focus({ preventScroll: true });
+      opener = null;
+    }
+  }).observe(overlay, { attributes: true, attributeFilter: ["hidden"] });
+});
+
+document.addEventListener("keydown", (e) => {
+  const overlay = [...document.querySelectorAll(".modal-overlay")].find(m => !m.hidden);
+  if (!overlay) return;
+  if (e.key === "Escape") {
+    e.preventDefault();
+    const dismiss = overlay.querySelector("[data-dismiss]");
+    if (dismiss) dismiss.click();
+    return;
+  }
+  if (e.key === "Tab") {
+    const items = [...overlay.querySelectorAll(FOCUSABLE)];
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    else if (!overlay.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+  }
 });
 
 /* ================================================================== */

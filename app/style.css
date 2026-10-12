@@ -68,8 +68,8 @@ a{ color: var(--accent); }
 /* Keyboard focus — every interactive element gets the same visible ring */
 .wasl :focus-visible{ outline: 2px solid var(--accent); outline-offset: 3px; }
 .wasl .switch input:focus-visible{ outline: none; }
-.wasl input[type="text"]:focus-visible{ outline: none; }
-.wasl .juz-chip.selected:focus-visible, .wasl .lib-tab.active:focus-visible, .wasl .preset-card.featured:focus-visible{ outline-color: var(--ink); }
+.wasl input[type="text"]:focus-visible, .wasl input[type="search"]:focus-visible{ outline: none; }
+.wasl .juz-chip.selected:focus-visible, .wasl .lib-tab.active:focus-visible, .wasl .preset-card.featured button:focus-visible{ outline-color: var(--ink); }
 
 @keyframes waslUp{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:none; } }
 @keyframes waslIn{ from{ opacity:0; transform:translateY(20px) scale(.985);} to{ opacity:1; transform:none; } }
@@ -107,12 +107,15 @@ a{ color: var(--accent); }
 
 .head-right{ display: flex; flex-direction: row; align-items: center; gap: 10px; }
 .settings-btn{
+  position: relative;
   width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface);
   display: flex; align-items: center; justify-content: center; color: var(--ink-soft); cursor: pointer;
   transition: color .15s ease, border-color .15s ease;
 }
 .settings-btn:hover{ color: var(--accent); border-color: var(--accent); }
 .settings-btn:active, .close-btn:active{ transform: scale(.94); }
+/* 34px visual, 44px hit area */
+.settings-btn::after, .close-btn::after, .recite-btn::after{ content: ""; position: absolute; inset: -5px; border-radius: 50%; }
 
 .settings-list{ display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; }
 .settings-list .section-head--control{ margin-bottom: 0; }
@@ -126,7 +129,7 @@ a{ color: var(--accent); }
 .theme-switch{ display: flex; gap: 3px; padding: 3px; border-radius: 100px; background: var(--surface); border: 1px solid var(--line); }
 .theme-opt{
   padding: 6px 15px; border-radius: 100px; font-size: 11px; font-weight: 500; letter-spacing: .04em;
-  cursor: pointer; transition: all .22s ease; background: transparent; color: var(--ink-soft);
+  cursor: pointer; transition: background .22s ease, color .22s ease; background: transparent; color: var(--ink-soft);
   border: none; font-family: inherit;
 }
 .theme-opt:not(.active):hover{ color: var(--ink); }
@@ -189,18 +192,32 @@ a{ color: var(--accent); }
 .presets-dot.active{ background: var(--accent); transform: scale(1.3); }
 
 .preset-card{
-  border-radius: 16px; padding: 15px 14px; cursor: pointer; transition: transform .12s ease, border-color .2s ease;
-  background: var(--surface); border: 1px solid var(--line); text-align: left; font-family: inherit; color: var(--ink);
+  position: relative; display: flex; border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--line); transition: transform .12s ease, border-color .2s ease;
 }
-.preset-card:active{ transform: scale(.98); }
+.preset-card:has(.preset-main:active){ transform: scale(.98); }
 .preset-card.featured{ background: var(--accent-dim); border-color: var(--accent); }
+.preset-main{
+  flex: 1; min-width: 0; padding: 15px 40px 15px 14px; border: none; border-radius: 15px; background: transparent;
+  text-align: left; font-family: inherit; color: var(--ink); cursor: pointer;
+}
+/* Endless shortcut: 30px visual in the corner, 44px hit area */
+.preset-endless{
+  position: absolute; top: 7px; right: 7px; width: 30px; height: 30px; border-radius: 9px;
+  display: grid; place-items: center; padding: 0; border: none; cursor: pointer;
+  background: transparent; color: var(--ink-soft);
+  transition: color .15s ease, background .15s ease, transform .15s var(--ease);
+}
+.preset-endless::after{ content: ""; position: absolute; inset: -7px; }
+.preset-endless:active{ transform: scale(.9); }
+.preset-card.featured .preset-endless{ color: var(--accent); }
 .preset-title{ font-size: 14.5px; font-weight: 500; margin-bottom: 3px; }
 .preset-sub{ font-size: 11.5px; color: var(--ink-soft); }
 
 .juz-grid{ display: grid; grid-template-columns: repeat(6,1fr); gap: 7px; }
 .juz-chip{
   aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 11px;
-  font-size: 13px; font-weight: 500; cursor: pointer; transition: all .16s ease;
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: background .16s ease, color .16s ease, border-color .16s ease, transform .16s ease;
   background: var(--surface); color: var(--ink-soft); border: 1px solid var(--line); font-family: inherit;
   user-select: none;
 }
@@ -212,6 +229,7 @@ a{ color: var(--accent); }
 
 .quiz-top{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .close-btn{
+  position: relative;
   width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: transparent;
   display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink-soft); cursor: pointer;
   font-family: inherit; transition: color .15s ease, border-color .15s ease, transform .15s var(--ease);
@@ -273,10 +291,11 @@ a{ color: var(--accent); }
   background: var(--btn-bg);
 }
 .btn-endless-main{
-  flex: 1; display: flex; align-items: center; justify-content: center;
+  flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center;
   padding: 14px; border: none; background: transparent; color: var(--btn-fg);
   font-size: 14.5px; font-weight: 600; letter-spacing: .01em; font-family: inherit; cursor: pointer;
 }
+.btn-endless-label{ min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .btn-endless-info{
   width: 42px; flex-shrink: 0; border: none;
   background: transparent; color: var(--btn-fg); font-size: 13px; font-weight: 700;
@@ -290,6 +309,18 @@ a{ color: var(--accent); }
   border-radius: 22px; background: var(--surface); border: 1px solid var(--line);
   padding: 26px 20px 22px; box-shadow: var(--shadow); position: relative;
 }
+/* Skeleton — same footprint as a loaded verse card */
+.skeleton{ display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 2px 0 4px; }
+.sk{ border-radius: 8px; background: var(--surface2); animation: waslShimmer 1.4s ease-in-out infinite; }
+.sk-ref{ width: 92px; height: 10px; margin-bottom: 10px; }
+.sk-line{ width: 88%; height: 22px; }
+.sk-line--short{ width: 58%; }
+.sk-divider{ width: 70px; height: 1px; margin: 10px 0; }
+.sk-en{ width: 80%; height: 10px; }
+.sk-en--short{ width: 46%; }
+@keyframes waslShimmer{ 0%,100%{ opacity: 1; } 50%{ opacity: .45; } }
+.visually-hidden{ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 .loading, .error-msg{ text-align: center; color: var(--ink-soft); padding: 30px 10px; font-size: 13.5px; }
 .error-msg{ color: var(--neg); }
 .retry-btn{
@@ -312,7 +343,7 @@ a{ color: var(--accent); }
 .options{ display: flex; flex-direction: column; gap: 10px; }
 .option{
   display: block; width: 100%; margin: 0; text-align: left; font: inherit; color: var(--ink);
-  border-radius: 16px; padding: 15px 17px; cursor: pointer; transition: all .22s var(--ease);
+  border-radius: 16px; padding: 15px 17px; cursor: pointer; transition: background .22s var(--ease), border-color .22s var(--ease), opacity .22s var(--ease), transform .22s var(--ease);
   background: var(--surface); border: 1px solid var(--line);
 }
 .option:not(.locked):active{ transform: scale(.99); }
@@ -330,9 +361,46 @@ a{ color: var(--accent); }
 .verdict-text.pos{ color: var(--pos); }
 .verdict-text.neg{ color: var(--neg); }
 .btn-next{
-  display: flex; align-items: center; justify-content: center; width: 100%; padding: 16px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; border-radius: 16px;
   background: var(--btn-bg); color: var(--btn-fg); font-size: 14.5px; font-weight: 600; cursor: pointer; border: none; font-family: inherit;
 }
+
+.btn-next-arrow{ flex: none; transition: transform .25s var(--ease); }
+@media (hover: hover){ .btn-next:hover .btn-next-arrow{ transform: translateX(3px); } }
+
+/* ---------- Verse-to-verse transition ---------- */
+
+@keyframes quizOut{ to{ opacity: 0; transform: translateX(-28px); } }
+@keyframes quizOptOut{ to{ opacity: 0; transform: translateX(-18px); } }
+@keyframes quizFadeOut{ to{ opacity: 0; transform: translateY(6px); } }
+@keyframes quizIn{ from{ opacity: 0; transform: translateX(32px); } }
+@keyframes quizOptIn{ from{ opacity: 0; transform: translateY(12px); } }
+@keyframes quizVerseIn{ from{ opacity: 0; filter: blur(6px); } }
+@keyframes quizArrowGo{ 40%{ transform: translateX(8px); opacity: 0; } 41%{ transform: translateX(-8px); } }
+@keyframes quizDotFill{ from{ transform: scaleX(0); } }
+@keyframes quizSkeletonIn{ from{ opacity: 0; } }
+
+/* Out: card and options slide left in a quick stagger, verdict sinks away */
+#view-quiz.is-leaving .quiz-card{ animation: quizOut .24s cubic-bezier(.5,0,.75,0) forwards; }
+#view-quiz.is-leaving .option{ animation: quizOptOut .2s cubic-bezier(.5,0,.75,0) forwards; }
+#view-quiz.is-leaving .option:nth-child(2){ animation-delay: .02s; }
+#view-quiz.is-leaving .option:nth-child(3){ animation-delay: .04s; }
+#view-quiz.is-leaving .option:nth-child(4){ animation-delay: .06s; }
+#view-quiz.is-leaving .which-next,
+#view-quiz.is-leaving .verdict-text{ animation: quizFadeOut .18s ease-in forwards; }
+#view-quiz.is-leaving .btn-next{ transform: scale(.985); pointer-events: none; }
+#view-quiz.is-leaving .btn-next-arrow{ animation: quizArrowGo .26s var(--ease) forwards; }
+
+/* In: card arrives from the right, the verse sharpens into focus, options rise one after another */
+.quiz-card.is-entering{ animation: quizIn .46s var(--ease) both; }
+.quiz-card.is-revealing > *{ animation: waslUp .4s var(--ease) both; }
+.quiz-card.is-revealing > .prompt-ar{ animation: quizVerseIn .6s ease-out .06s both; }
+.quiz-card.is-revealing > .prompt-en{ animation-delay: .1s; }
+.which-next.is-entering{ animation: waslUp .4s var(--ease) .12s both; }
+.option.is-entering{ animation: quizOptIn .42s var(--ease) both; animation-delay: calc(.16s + var(--i, 0) * .06s); }
+.dot-enter{ transform-origin: left; animation: quizDotFill .5s var(--ease) both; }
+/* Held back a beat so fast loads go straight to the verse without a skeleton flash */
+.quiz-card .skeleton{ animation: quizSkeletonIn .2s ease .18s both; }
 
 /* ---------- Summary ---------- */
 
@@ -372,7 +440,7 @@ a{ color: var(--accent); }
 
 /* ---------- Progress ---------- */
 
-.page-title{ font-size: 24px; font-weight: 500; margin-bottom: 24px; }
+.page-title{ font-size: 24px; font-weight: 500; letter-spacing: -.015em; margin: 0 0 24px; }
 
 .progress-card{
   border-radius: 22px; background: var(--grad); padding: 22px; margin-bottom: 24px; box-shadow: var(--shadow);
@@ -410,16 +478,22 @@ a{ color: var(--accent); }
   border: 1px solid var(--line); margin-bottom: 22px; transition: border-color .2s ease, box-shadow .2s ease;
 }
 .lib-search:focus-within{ border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-.lib-search-dot{ width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--ink-soft); flex: none; }
+.lib-search-icon{ flex: none; color: var(--ink-soft); transition: color .2s ease; }
+.lib-search:focus-within .lib-search-icon{ color: var(--accent); }
 .lib-search input{
   border: none; background: transparent; outline: none; font-family: inherit; font-size: 13.5px; color: var(--ink);
   width: 100%; font-weight: 300;
 }
 .lib-search input::placeholder{ color: var(--ink-soft); }
+.lib-search input::-webkit-search-cancel-button{ -webkit-appearance: none; }
+
+.lib-empty{ padding: 28px 4px; }
+.lib-empty-title{ font-size: 14.5px; font-weight: 500; margin-bottom: 4px; overflow-wrap: anywhere; }
+.lib-empty-sub{ font-size: 13px; color: var(--ink-soft); font-weight: 300; }
 
 .lib-tabs{ display: flex; gap: 8px; margin-bottom: 22px; }
 .lib-tab{
-  padding: 9px 18px; border-radius: 100px; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .18s ease;
+  padding: 9px 18px; border-radius: 100px; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .18s ease, color .18s ease, border-color .18s ease;
   background: transparent; color: var(--ink-soft); border: 1px solid var(--line); font-family: inherit;
 }
 .lib-tab.active{ background: var(--accent); color: #051F20; border-color: var(--accent); }
@@ -457,7 +531,7 @@ a{ color: var(--accent); }
 }
 .nav-tab{
   flex: 1; text-align: center; padding: 12px 4px; border-radius: 15px; font-size: 12.5px; font-weight: 500;
-  cursor: pointer; transition: all .2s ease; background: transparent; color: var(--ink-soft); border: none; font-family: inherit;
+  cursor: pointer; transition: background .2s ease, color .2s ease, transform .15s var(--ease); background: transparent; color: var(--ink-soft); border: none; font-family: inherit;
 }
 .nav-tab.active{ background: var(--surface2); color: var(--ink); }
 .nav-tab:active{ transform: scale(.97); }
@@ -484,7 +558,7 @@ footer.credit{ text-align: center; padding: 0 0 8px; font-size: 11px; color: var
   box-shadow: var(--shadow), 0 0 0 1px rgba(199,154,61,.18) inset;
   animation: waslPop .26s cubic-bezier(.22,.9,.3,1) both;
 }
-.modal-title{ font-size: 17px; font-weight: 600; margin-bottom: 10px; color: var(--ink); }
+.modal-title{ font-size: 17px; font-weight: 600; margin: 0 0 10px; color: var(--ink); }
 .modal-body{ font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 22px; }
 .modal-body p{ margin: 0 0 10px; }
 .modal-body p:last-child{ margin-bottom: 0; }
@@ -501,7 +575,8 @@ footer.credit{ text-align: center; padding: 0 0 8px; font-size: 11px; color: var
   .btn-ghost:hover{ border-color: var(--line-strong); background: var(--hover); }
   .btn-ghost-danger:hover{ border-color: var(--neg); background: var(--neg-bg); }
   .close-btn:hover{ color: var(--ink); border-color: var(--line-strong); }
-  .preset-card:not(.featured):hover{ border-color: var(--line-strong); }
+  .preset-card:not(.featured):has(.preset-main:hover){ border-color: var(--line-strong); }
+  .preset-endless:hover{ color: var(--accent); background: var(--accent-dim); }
   .juz-chip:not(.selected):hover{ color: var(--ink); border-color: var(--line-strong); }
   .option:not(.locked):hover{ border-color: var(--line-strong); background: linear-gradient(var(--hover), var(--hover)), var(--surface); }
   .nav-tab:not(.active):hover{ color: var(--ink); }
