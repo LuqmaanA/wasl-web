@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Wasl">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -166,13 +166,13 @@
   </section>
 
   <!-- ===================== BOTTOM NAV ===================== -->
-  <nav class="bottom-nav" id="bottom-nav">
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Main">
     <div class="nav-bar">
       <button type="button" class="nav-tab" data-tab="practice">Practice</button>
       <button type="button" class="nav-tab" data-tab="progress">Progress</button>
       <button type="button" class="nav-tab" data-tab="library">Library</button>
     </div>
-    <div class="home-indicator"></div>
+    <div class="home-indicator" aria-hidden="true"></div>
   </nav>
 
   <!-- ===================== LEAVE-SESSION MODAL ===================== -->
@@ -264,7 +264,7 @@
   <!-- ===================== RELEASE NOTICE MODAL ===================== -->
   <div class="modal-overlay" id="notice-modal" hidden>
     <div class="modal-card">
-      <div class="modal-title" id="notice-title">Release Notes</div>
+      <div class="modal-title" id="notice-title">Release notes</div>
       <div class="modal-body" id="notice-body"></div>
       <div class="modal-actions">
         <button type="button" class="btn-continue flex1" id="notice-close">Got it</button>

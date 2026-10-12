@@ -474,7 +474,11 @@ document.getElementById("bottom-nav").addEventListener("click", (e) => {
 });
 
 function syncNavActive() {
-  document.querySelectorAll(".nav-tab").forEach(b => b.classList.toggle("active", b.dataset.tab === state.tab));
+  document.querySelectorAll(".nav-tab").forEach(b => {
+    const on = b.dataset.tab === state.tab;
+    b.classList.toggle("active", on);
+    if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  });
 }
 
 /* ================================================================== */
@@ -640,7 +644,9 @@ function renderHome() {
   const dotsEl = document.getElementById("presets-dots");
   dotsEl.innerHTML = "";
   pages.forEach((_, i) => {
-    const dot = el("div", "presets-dot" + (i === 0 ? " active" : ""));
+    const dot = el("button", "presets-dot" + (i === 0 ? " active" : ""));
+    dot.type = "button";
+    dot.setAttribute("aria-label", `Presets page ${i + 1}`);
     dot.addEventListener("click", () => {
       sliderEl.scrollTo({ left: sliderEl.clientWidth * i, behavior: "smooth" });
     });
@@ -652,10 +658,16 @@ function renderHome() {
   grid.innerHTML = "";
   ALL_JUZ.forEach(n => {
     const on = state.selectedJuz.has(n);
-    const chip = el("div", "juz-chip" + (on ? " selected" : ""), String(n));
+    const chip = el("button", "juz-chip" + (on ? " selected" : ""), String(n));
+    chip.type = "button";
+    chip.setAttribute("aria-pressed", on ? "true" : "false");
+    chip.setAttribute("aria-label", `Juz ${n}`);
     chip.addEventListener("click", () => {
       if (on) state.selectedJuz.delete(n); else state.selectedJuz.add(n);
       renderHome();
+      // renderHome rebuilds the grid; keep keyboard focus on the same chip
+      const again = document.querySelector(`#juz-grid [aria-label="Juz ${n}"]`);
+      if (again) again.focus({ preventScroll: true });
     });
     grid.appendChild(chip);
   });
@@ -1006,8 +1018,10 @@ function renderQuiz() {
   whichNext.hidden = false;
 
   q.options.forEach((opt, i) => {
-    const optEl = el("div", "option");
+    const optEl = el("button", "option");
+    optEl.type = "button";
     if (answered) {
+      optEl.disabled = true;
       optEl.classList.add("locked");
       if (opt.correct) optEl.classList.add("correct");
       else if (i === s.picked) optEl.classList.add("wrong");
@@ -1053,6 +1067,9 @@ function handleChoice(i) {
 
   recordAnswer(q.juz, correct);
   renderQuiz();
+  // The tapped option is re-rendered as disabled, so hand focus to the next
+  // action rather than letting it fall back to <body> for keyboard users.
+  document.getElementById("btn-next").focus({ preventScroll: true });
 }
 
 document.getElementById("btn-next").addEventListener("click", () => {
