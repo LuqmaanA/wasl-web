@@ -25,13 +25,17 @@ body{
   --ease:cubic-bezier(.22,.9,.3,1);
 }
 .wasl.theme-light{
-  --bg:#F1F7F2; --surface:#FFFFFF; --surface2:#E4EFE7; --line:rgba(35,83,71,.14);
-  --ink:#0B2B26; --ink-soft:#4A6B60; --accent:#8A6716; --accent-dim:rgba(138,103,22,.12);
-  --grad:linear-gradient(155deg,#235347 0%,#163832 72%);
-  --pos:#235347; --pos-bg:rgba(35,83,71,.10); --neg:#A2453A; --neg-bg:rgba(162,69,58,.08);
-  --btn-bg:#163832; --btn-fg:#DAF1DE; --shadow:0 18px 40px -26px rgba(5,31,32,.45);
-  --line-strong:rgba(35,83,71,.3); --hover:rgba(35,83,71,.04);
-  --scrim:rgba(11,43,38,.38); --grain-opacity:.03;
+  --bg:#E2D4B9; --surface:#EBE1CC; --surface2:#D6C7A8;
+  --line:rgba(48,54,14,.16); --line-strong:rgba(48,54,14,.32);
+  --ink:#30360E; --ink-soft:#545A3A;
+  --accent:#30360E; --accent-dim:rgba(48,54,14,.10);
+  --grad:linear-gradient(155deg,#5E6540 0%,#30360E 72%);
+  --pos:#3F5217; --pos-bg:rgba(63,82,23,.12);
+  --neg:#94382E; --neg-bg:rgba(148,56,46,.10);
+  --btn-bg:#30360E; --btn-fg:#E2D4B9;
+  --shadow:0 18px 40px -26px rgba(48,54,14,.5);
+  --hover:rgba(48,54,14,.04); --scrim:rgba(48,54,14,.38);
+  --grain-opacity:.03;
 }
 
 .wasl{
@@ -139,8 +143,9 @@ a{ color: var(--accent); }
   border-radius: 24px; background: var(--grad); padding: 24px 22px; box-shadow: var(--shadow);
   position: relative; overflow: hidden; margin-bottom: 28px;
 }
-/* The card stays dark green in light mode, so its buttons keep the light treatment */
-.theme-light .today-card{ --btn-bg:#DAF1DE; --btn-fg:#051F20; --accent:#C79A3D; }
+/* The card stays dark in light mode, so its buttons keep the light treatment.
+   --accent goes cream here too, or focus rings would vanish into the olive. */
+.theme-light .today-card{ --btn-bg:#E2D4B9; --btn-fg:#30360E; --accent:#E2D4B9; }
 .today-card::before{
   content: ""; position: absolute; inset: 1px; border-radius: 23px;
   border: 1px solid rgba(199,154,61,.22); pointer-events: none;
@@ -223,7 +228,7 @@ a{ color: var(--accent); }
 }
 .juz-chip:active{ transform: scale(.94); }
 .juz-chip.selected{ background: var(--accent); color: #051F20; border-color: var(--accent); }
-.theme-light .juz-chip.selected, .theme-light .lib-tab.active{ color: #FFFFFF; }
+.theme-light .juz-chip.selected, .theme-light .lib-tab.active{ color: #E2D4B9; }
 
 /* ---------- Quiz ---------- */
 
@@ -459,6 +464,17 @@ a{ color: var(--accent); }
 .week-bar.active{ background: #C79A3D; }
 .week-bar-label{ font-size: 10px; color: rgba(218,241,222,.5); }
 
+/* Hero cards in light mode: cream instead of mint and gold (dark theme keeps the rules above) */
+.theme-light .today-card::before, .theme-light .progress-card::before{ border-color: rgba(226,212,185,.22); }
+.theme-light .today-eyebrow{ color: rgba(226,212,185,.6); }
+.theme-light .today-title, .theme-light .ring-label, .theme-light .progress-streak{ color: #E2D4B9; }
+.theme-light .ring-svg circle:first-child{ stroke: rgba(226,212,185,.16); }
+.theme-light #today-ring{ stroke: #E2D4B9; }
+.theme-light .progress-streak-sub{ color: rgba(226,212,185,.65); }
+.theme-light .week-bar{ background: rgba(226,212,185,.32); }
+.theme-light .week-bar.active{ background: #E2D4B9; }
+.theme-light .week-bar-label{ color: rgba(226,212,185,.5); }
+
 .big-stats{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 26px; }
 .big-stat{ border-radius: 16px; background: var(--surface); border: 1px solid var(--line); padding: 18px 16px; }
 .big-stat .stat-v{ font-size: 26px; font-weight: 600; margin-bottom: 4px; }
@@ -558,6 +574,7 @@ footer.credit{ text-align: center; padding: 0 0 8px; font-size: 11px; color: var
   box-shadow: var(--shadow), 0 0 0 1px rgba(199,154,61,.18) inset;
   animation: waslPop .26s cubic-bezier(.22,.9,.3,1) both;
 }
+.theme-light .modal-card{ box-shadow: var(--shadow), 0 0 0 1px rgba(48,54,14,.10) inset; }
 .modal-title{ font-size: 17px; font-weight: 600; margin: 0 0 10px; color: var(--ink); }
 .modal-body{ font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 22px; }
 .modal-body p{ margin: 0 0 10px; }
