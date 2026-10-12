@@ -512,7 +512,7 @@ function syncNavActive() {
 function applyTheme() {
   appEl.classList.toggle("theme-light", state.theme === "light");
   appEl.classList.toggle("theme-dark", state.theme !== "light");
-  document.querySelector('meta[name="theme-color"]').setAttribute("content", state.theme === "light" ? "#F1F7F2" : "#051F20");
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", state.theme === "light" ? "#E2D4B9" : "#051F20");
   document.querySelectorAll("#theme-switch .theme-opt").forEach(b => b.classList.toggle("active", b.dataset.theme === state.theme));
 }
 
